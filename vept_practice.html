@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>VEPT Practice</title>
+<style>
+:root {
+  --blue:#1d4ed8;--blue-lt:#eff6ff;--blue-md:#dbeafe;
+  --green:#059669;--green-lt:#ecfdf5;
+  --red:#dc2626;--red-lt:#fef2f2;
+  --amber:#d97706;--amber-lt:#fffbeb;
+  --text:#0f172a;--text2:#64748b;--text3:#94a3b8;
+  --border:#e2e8f0;--bg:#f8fafc;--white:#fff;
+  --r:14px;--rsm:9px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,'SF Pro Text',BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);max-width:480px;margin:0 auto;min-height:100vh;}
+.hdr{background:var(--white);border-bottom:1px solid var(--border);padding:11px 14px;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:9px;}
+.hdr-ico{width:30px;height:30px;background:var(--blue);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hdr-ico svg{fill:white;}
+.hdr-t h1{font-size:14px;font-weight:700;}
+.hdr-t p{font-size:11px;color:var(--text2);}
+.hdr-r{margin-left:auto;}
+.spill{background:var(--blue-lt);color:var(--blue);font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px;cursor:pointer;border:none;font-family:inherit;}
+.tabs{display:flex;gap:5px;padding:9px 13px;overflow-x:auto;background:var(--white);border-bottom:1px solid var(--border);scrollbar-width:none;position:sticky;top:52px;z-index:99;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;font-size:11px;font-weight:600;padding:5px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;}
+.tab.on{background:var(--blue);color:white;border-color:var(--blue);}
+.prog{padding:7px 13px 0;display:flex;align-items:center;gap:8px;}
+.pbar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.pfill{height:100%;background:var(--blue);border-radius:2px;transition:width .4s;}
+.ptxt{font-size:11px;color:var(--text2);white-space:nowrap;}
+.sinfo{padding:9px 13px 5px;}
+.stitle{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.stag{font-size:10px;font-weight:700;padding:2px 6px;border-radius:20px;background:var(--blue-md);color:var(--blue);text-transform:uppercase;letter-spacing:.3px;}
+.sdesc{font-size:12px;color:var(--text2);margin-top:4px;line-height:1.55;}
+.card{background:var(--white);border-radius:var(--r);border:1px solid var(--border);margin:7px 11px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.qlb{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;display:flex;align-items:center;gap:5px;}
+.ddot{width:6px;height:6px;border-radius:50%;display:inline-block;}
+.db1{background:#22c55e;}.db2{background:#f59e0b;}.dc1{background:#f43f5e;}
+.dlb1{background:#dcfce7;color:#15803d;}.dlb2{background:#fef9c3;color:#a16207;}.dlc1{background:#ffe4e6;color:#9f1239;}
+.dl{font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;}
+
+/* Player */
+.player{display:flex;align-items:center;gap:10px;background:var(--blue-lt);border:1px solid var(--blue-md);border-radius:var(--rsm);padding:10px 12px;margin-bottom:10px;}
+.pbtn{width:36px;height:36px;border-radius:50%;background:var(--blue);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.pbtn:active{transform:scale(.92);}
+.pbtn.playing{background:var(--red);}
+.pbtn svg{fill:white;}
+.pinfo{flex:1;min-width:0;}
+.plbl{font-size:12px;font-weight:600;color:var(--blue);}
+.pst{font-size:11px;color:var(--text2);margin-top:2px;}
+.pbarw{height:3px;background:var(--blue-md);border-radius:2px;margin-top:5px;overflow:hidden;}
+.pbar2{height:100%;background:var(--blue);width:0;border-radius:2px;transition:width .1s linear;}
+
+/* Passage */
+.passage{background:var(--bg);border:1px solid var(--border);border-radius:var(--rsm);padding:11px 13px;font-size:14px;line-height:1.75;color:var(--text);margin-bottom:10px;}
+.w{display:inline;}
+.w.ok{color:var(--green);font-weight:600;}
+.w.bad{color:var(--red);font-weight:600;text-decoration:underline wavy var(--red);}
+.w.apr{color:var(--amber);font-weight:600;}
+
+/* Mic */
+.micw{display:flex;flex-direction:column;align-items:center;gap:5px;margin:11px 0;}
+.micb{width:58px;height:58px;border-radius:50%;background:var(--blue);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 4px 12px rgba(29,78,216,.25);}
+.micb:active{transform:scale(.93);}
+.micb.rec{background:var(--red);animation:rp 1.2s infinite;}
+.micb.done{background:var(--green);}
+.micb svg{fill:white;}
+@keyframes rp{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.4)}50%{box-shadow:0 0 0 10px rgba(220,38,38,0)}}
+.miclb{font-size:12px;color:var(--text2);font-weight:500;text-align:center;}
+
+/* Score panel */
+.spanel{border-radius:var(--rsm);border:1px solid var(--border);overflow:hidden;margin-top:10px;}
+.shdr{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--bg);border-bottom:1px solid var(--border);}
+.sovr{font-size:22px;font-weight:800;}
+.sg{color:var(--green);}.so{color:var(--amber);}.sb{color:var(--red);}
+.slb{font-size:11px;color:var(--text2);}
+.sgr{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;}
+.sbody{padding:10px 13px;display:flex;flex-direction:column;gap:7px;}
+.srow{display:flex;align-items:center;gap:8px;}
+.srlb{font-size:11px;color:var(--text2);width:80px;flex-shrink:0;}
+.srbar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.srfill{height:100%;border-radius:3px;transition:width .6s;}
+.srnum{font-size:12px;font-weight:700;width:30px;text-align:right;}
+.wana{padding:10px 13px;border-top:1px solid var(--border);}
+.watitle{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
+.wchips{display:flex;flex-wrap:wrap;gap:4px;}
+.wc{font-size:12px;padding:3px 8px;border-radius:20px;font-weight:500;}
+.wcok{background:var(--green-lt);color:var(--green);}
+.wcerr{background:var(--red-lt);color:var(--red);}
+.wcms{background:#f1f5f9;color:var(--text2);text-decoration:line-through;}
+
+/* Options */
+.opts{display:flex;flex-direction:column;gap:7px;}
+.opt{width:100%;text-align:left;padding:10px 13px;border-radius:var(--rsm);border:1.5px solid var(--border);background:var(--white);font-size:13.5px;cursor:pointer;display:flex;align-items:flex-start;gap:8px;line-height:1.45;transition:all .15s;font-family:inherit;}
+.opt:active{transform:scale(.98);}
+.olb{font-weight:700;color:var(--text3);min-width:15px;font-size:12px;margin-top:1px;}
+.opt.sel{border-color:var(--blue);background:var(--blue-lt);}
+.opt.ok2{border-color:var(--green);background:var(--green-lt);}
+.opt.ok2 .olb{color:var(--green);}
+.opt.bad2{border-color:var(--red);background:var(--red-lt);}
+.opt.bad2 .olb{color:var(--red);}
+
+/* Input */
+.tinp{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--rsm);font-size:14px;color:var(--text);background:var(--bg);outline:none;transition:border-color .15s;font-family:inherit;}
+.tinp:focus{border-color:var(--blue);background:var(--white);}
+.tinp.ok{border-color:var(--green);background:var(--green-lt);}
+.tinp.err{border-color:var(--red);background:var(--red-lt);}
+textarea.tinp{resize:vertical;line-height:1.6;min-height:90px;}
+
+/* Feedback */
+.fb{display:none;margin-top:9px;padding:9px 12px;border-radius:var(--rsm);font-size:13px;line-height:1.5;}
+.fb.show{display:block;}
+.fb.ok{background:var(--green-lt);color:#065f46;border-left:3px solid var(--green);}
+.fb.err{background:var(--red-lt);color:#991b1b;border-left:3px solid var(--red);}
+.fb.info{background:var(--blue-lt);color:#1e40af;border-left:3px solid var(--blue);}
+
+/* Btns */
+.btns{display:flex;gap:7px;margin-top:10px;}
+.btn{flex:1;padding:10px;border-radius:var(--rsm);border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;}
+.btn:active{transform:scale(.97);}
+.bp{background:var(--blue);color:white;}
+.bs{background:var(--bg);color:var(--text);border:1px solid var(--border);}
+.bo{background:white;color:var(--blue);border:1.5px solid var(--blue);}
+
+/* Chips */
+.cara{min-height:40px;border:1.5px dashed var(--border);border-radius:var(--rsm);padding:7px;display:flex;flex-wrap:wrap;gap:5px;background:var(--bg);margin-bottom:8px;}
+.ch{padding:5px 10px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .15s;}
+.cha{background:var(--blue-md);color:var(--blue);border:1.5px solid #bfdbfe;}
+.chsrc{background:#f1f5f9;color:var(--text);border:1.5px solid var(--border);}
+.chsrc.used{opacity:.3;pointer-events:none;}
+.srcw{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+
+/* Transcript */
+.trbt{width:100%;margin-top:8px;padding:8px;border-radius:var(--rsm);border:1px solid var(--border);background:var(--white);font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit;}
+.trbox{display:none;margin-top:8px;padding:11px 13px;background:var(--bg);border-radius:var(--rsm);border:1px solid var(--border);font-size:13px;line-height:1.7;white-space:pre-line;}
+.trbox.show{display:block;}
+
+/* Timer */
+.tmr{font-size:12px;font-weight:700;color:var(--amber);background:var(--amber-lt);padding:3px 9px;border-radius:20px;border:1px solid #fde68a;}
+.tmr.urg{color:var(--red);background:var(--red-lt);border-color:#fecaca;}
+
+/* Tip box */
+.tip{background:var(--amber-lt);border:1px solid #fde68a;border-radius:var(--rsm);padding:8px 11px;margin-top:9px;font-size:12px;color:#92400e;line-height:1.5;}
+.ibox{background:var(--blue-lt);border:1px solid var(--blue-md);border-radius:var(--rsm);padding:8px 11px;margin-top:9px;font-size:12px;color:#1e40af;line-height:1.5;}
+
+/* Score legend */
+.sleg{font-size:11px;color:var(--text3);text-align:center;margin-top:7px;}
+.sleg span{margin:0 4px;}
+
+/* Bottom nav */
+.bnav{position:sticky;bottom:0;background:var(--white);border-top:1px solid var(--border);display:flex;}
+.nb{flex:1;padding:10px 4px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;font-size:10px;color:var(--text2);font-weight:600;font-family:inherit;transition:color .15s;}
+.nb.on{color:var(--blue);}
+.nb svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;}
+
+/* Score page */
+.shero{background:linear-gradient(135deg,var(--blue),#3b82f6);padding:20px 16px;color:white;text-align:center;border-radius:var(--r) var(--r) 0 0;}
+.sheron{font-size:50px;font-weight:900;line-height:1;}
+.shers{font-size:13px;opacity:.8;margin-top:4px;}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:13px;}
+.ci{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:9px;text-align:center;}
+.clv{font-size:12px;font-weight:700;color:var(--blue);}
+.crng{font-size:11px;color:var(--text2);margin-top:2px;}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-ico"><svg width="15" height="15" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
+  <div class="hdr-t"><h1>VEPT Practice</h1><p>Pearson Versant · Manchester Prep</p></div>
+  <div class="hdr-r"><button class="spill" onclick="sv('score',null)">📊 Score</button></div>
+</div>
+
+<div class="tabs" id="tabRow"></div>
+<div class="prog"><div class="pbar"><div class="pfill" id="pf"></div></div><div class="ptxt" id="pt"></div></div>
+<div id="si" class="sinfo"></div>
+<div id="mc"></div>
+
+<div class="bnav">
+  <button class="nb on" id="n0" onclick="sv('practice',this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Practice
+  </button>
+  <button class="nb" id="n1" onclick="sv('tips',this)">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Tips
+  </button>
+  <button class="nb" id="n2" onclick="sv('score',this)">
+    <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Score
+  </button>
+</div>
+
+<script>
+const PM={
+  A:{name:'Read Aloud',skill:'Speaking+Reading',total:2,desc:'Read the passage aloud exactly as written. 30 sec. Focus on rhythm, stress, and intonation.'},
+  B:{name:'Repeat',skill:'Speaking',total:16,desc:'Listen to a sentence, then repeat it exactly. 15 sec to respond. Start within 6 sec.'},
+  C:{name:'Sentence Builds',skill:'Speaking',total:10,desc:'Three scrambled phrases are read aloud. Arrange and say the correct sentence. 15 sec.'},
+  D:{name:'Conversations',skill:'Listening',total:12,desc:'Listen to a short dialogue, then answer a question with a word or short phrase. 8 sec.'},
+  E:{name:'Typing',skill:'Typing',total:1,desc:'Type as much of the passage as you can in 60 seconds. Target: 12+ WPM, 90%+ accuracy.'},
+  F:{name:'Sentence Completion',skill:'Reading',total:20,desc:'A sentence is shown with one missing word. Choose or type the best word. 25 sec each.'},
+  G:{name:'Dictation',skill:'Listening',total:16,desc:'Listen and type exactly what you hear. Spelling, punctuation, and capitalisation all count.'},
+  H:{name:'Passage Reconstruction',skill:'Writing',total:3,desc:'Read a passage, then reconstruct it from memory in your own words. 90 sec each.'},
+  I:{name:'Summary & Opinion',skill:'Reading+Writing',total:1,desc:'Read a passage. Write a summary and give your personal opinion. ~120-150 words.'}
+};
+
+const QB={
+A:[
+  {id:'A1',d:2,passage:'Many offices are becoming more diverse in today\'s global market. Companies that value inclusion tend to attract a wider range of talented employees. Working with people from different backgrounds can lead to greater creativity and better problem solving across the organisation.'},
+  {id:'A2',d:2,passage:'Leadership is a popular topic in many organisations. After centuries of studying great leaders, you might expect there to be an agreed-upon definition of leadership. However, this is not the case. Most people agree that leadership involves someone guiding others towards a common goal.'},
+],
+B:[
+  {id:'B1',d:1,text:'It looks like everyone is gone for the day.',hint:'Short, natural sentence. Stress "gone" and "day".'},
+  {id:'B2',d:1,text:'Someone will be with you shortly.',hint:'Stress "shortly" — natural customer service phrase.'},
+  {id:'B3',d:1,text:'You really should hire him right away.',hint:'Stress "really" and "right away" — emphasis words.'},
+  {id:'B4',d:1,text:'If you forget your password, click on the link below.',hint:'Two clauses — slight pause at the comma.'},
+  {id:'B5',d:1,text:'Our offices will be closed on Monday due to the holiday.',hint:'Stress "closed" and "Monday" and "holiday".'},
+  {id:'B6',d:1,text:'Not everyone feels the way that you do.',hint:'Contrast sentence — stress "not everyone".'},
+  {id:'B7',d:2,text:'How many people do you expect to attend the conference?',hint:'Question — rising intonation throughout, stress "attend".'},
+  {id:'B8',d:2,text:'Talk to a financial advisor for information about investing.',hint:'Stress "financial advisor" and "investing".'},
+  {id:'B9',d:2,text:'One box of high-quality paper should be enough for the job.',hint:'"High-quality" — hyphenated adjective, even stress.'},
+  {id:'B10',d:2,text:'Protective shoes must be worn in this area at all times.',hint:'Passive construction — stress "must" and "at all times".'},
+  {id:'B11',d:2,text:'Far fewer students took a math course this term compared to last.',hint:'Comparative structure — stress "far fewer" and "compared to last".'},
+  {id:'B12',d:2,text:'I just don\'t want to be the reason for the delay.',hint:'Contraction "don\'t" — natural pace, stress "reason".'},
+  {id:'B13',d:3,text:'The heat index declined twenty percent last year.',hint:'Numbers and statistics — say "twenty percent" clearly.'},
+  {id:'B14',d:3,text:'Mason had the last laugh in the end.',hint:'Idiom "had the last laugh" — natural connected speech.'},
+  {id:'B15',d:3,text:'That\'s just the way she wanted it done from the beginning.',hint:'Informal but complex — stress "way" and "beginning".'},
+  {id:'B16',d:3,text:'Understanding language nuances is essential for clear and effective communication.',hint:'"Nuances" — 2 syllables, stress 1st. "Effective" — stress 2nd.'},
+],
+C:[
+  {id:'C1',d:1,phrases:['was looking at','my father','his favorite book'],answer:'My father was looking at his favorite book.'},
+  {id:'C2',d:1,phrases:['can you work late','tomorrow','Maria'],answer:'Maria, can you work late tomorrow?'},
+  {id:'C3',d:1,phrases:['everyone is gone','it looks like','for the day'],answer:'It looks like everyone is gone for the day.'},
+  {id:'C4',d:1,phrases:['how long','staying here','is he'],answer:'How long is he staying here?'},
+  {id:'C5',d:2,phrases:['must be worn','in this area','protective shoes'],answer:'Protective shoes must be worn in this area.'},
+  {id:'C6',d:2,phrases:['to attend the conference','how many people','do you expect'],answer:'How many people do you expect to attend the conference?'},
+  {id:'C7',d:2,phrases:['for information about investing','talk to','a financial advisor'],answer:'Talk to a financial advisor for information about investing.'},
+  {id:'C8',d:2,phrases:['should be enough for the job','one box of paper','high quality'],answer:'One box of high quality paper should be enough for the job.'},
+  {id:'C9',d:3,phrases:['compared to last term','far fewer students','took a math course'],answer:'Far fewer students took a math course compared to last term.'},
+  {id:'C10',d:3,phrases:['is essential for communication','understanding language nuances','clear and effective'],answer:'Understanding language nuances is essential for clear and effective communication.'},
+],
+D:[
+  {id:'D1',d:1,conv:'A: Maria, can you work late tomorrow?\nB: Sorry, I can\'t. I have a dentist appointment after work.\nA: What about Thursday?\nB: Thursday works for me.',q:'Why can\'t Maria work late tomorrow?',ans:'dentist/dentist appointment',hint:'Listen for the reason B gives immediately.'},
+  {id:'D2',d:1,conv:'A: Is the coffee shop on Fifth Street still open?\nB: No, it closed down last month. There is a new one on Main Street though.\nA: Is it any good?\nB: I haven\'t tried it yet.',q:'Where is the new coffee shop?',ans:'Main Street/on Main Street',hint:'B mentions the new location straight away.'},
+  {id:'D3',d:1,conv:'A: Did you hear that James is leaving the company?\nB: Yes, he got a job offer in Toronto.\nA: When is his last day?\nB: This Friday.',q:'When is James\'s last day?',ans:'Friday/this Friday',hint:'Listen for the specific day B mentions at the end.'},
+  {id:'D4',d:1,conv:'A: I need to send this package to the London office urgently.\nB: You can use the express courier service on the second floor.\nA: How long does express delivery take?\nB: Usually next day.',q:'How long does express delivery take?',ans:'next day/one day',hint:'B gives the timeframe at the end.'},
+  {id:'D5',d:2,conv:'A: Have you finished the quarterly report yet?\nB: Almost. I just need to add the sales figures from last week.\nA: Can you send it to me by noon?\nB: Sure, I will have it done by eleven.',q:'By what time will the report be ready?',ans:'eleven/11/by eleven',hint:'Listen for the specific time B gives at the end.'},
+  {id:'D6',d:2,conv:'A: The conference room is booked until three o\'clock.\nB: I need it at two thirty for a client call.\nA: You could use the smaller meeting room on the fourth floor.\nB: That would work. Can you book it for me?',q:'What time does B need the room?',ans:'two thirty/half past two/2:30',hint:'B states the time right after A describes the problem.'},
+  {id:'D7',d:2,conv:'A: I heard the training session has been moved.\nB: Yes, it is now on Wednesday instead of Tuesday.\nA: Same time?\nB: No, it starts at nine instead of ten.',q:'What time does the training session start?',ans:'nine/nine o\'clock/9am',hint:'Two things changed — focus on the time, not the day.'},
+  {id:'D8',d:2,conv:'A: The printer on the third floor is out of paper.\nB: There should be spare reams in the supply cupboard next to the kitchen.\nA: I checked there already. It is empty.\nB: In that case, call the facilities team — extension 214.',q:'What should they do if the supply cupboard is empty?',ans:'call facilities/extension 214/call the facilities team',hint:'B gives a backup plan at the very end.'},
+  {id:'D9',d:2,conv:'A: Did anyone contact the supplier about the delay?\nB: Yes, I called them this morning. They said the delivery has been pushed back to next Monday.\nA: That is not good. We needed those parts by Friday.\nB: I know. I asked them to look into express shipping.',q:'When will the delivery arrive now?',ans:'Monday/next Monday',hint:'B gives the new date after being asked.'},
+  {id:'D10',d:3,conv:'A: The IT department says the system upgrade will take the whole weekend.\nB: That means the online ordering system will be down from Friday evening.\nA: We need to notify all customers in advance.\nB: I will send an email to the customer database today.',q:'When will the online ordering system be unavailable?',ans:'Friday evening/from Friday/weekend',hint:'B explains when it starts right after A explains the duration.'},
+  {id:'D11',d:3,conv:'A: The board has approved the merger, but there are still regulatory hurdles to clear.\nB: Legal says it could take anywhere from three to six months.\nA: Should we start planning the integration now?\nB: The CEO wants to wait until final approval before committing resources.',q:'What does the CEO want to do before committing resources?',ans:'wait for approval/final approval/regulatory approval',hint:'B explains the CEO\'s position at the end.'},
+  {id:'D12',d:3,conv:'A: Our customer satisfaction scores dropped significantly in the third quarter.\nB: The exit survey data points to two main issues — slow response times and a lack of personalised service.\nA: Which one should we address first?\nB: Response time, because it affects the most customers and is quicker to fix.',q:'Which issue does B recommend addressing first?',ans:'response time/slow response times',hint:'B gives a clear recommendation with reasoning at the end.'},
+],
+E:[
+  {id:'E1',d:2,passage:'Leadership is a popular topic in today\'s organisations. After centuries of studying leaders, it would seem that there would be an agreed upon definition of leadership. However, this is not the case. There is still much debate on what makes a good leader. Most texts on leadership try to isolate simple characteristics of leaders and describe how one might attain them. The truth is that leadership is very complex and looks different in each individual. Most people are able to recognise leadership when they see it. People agree that leadership involves someone leading and others following.'},
+],
+F:[
+  {id:'F1',d:1,sent:'How much does this book ___? There\'s no price on it.',ans:'cost',opts:['cost','price','sell','worth'],hint:'"How much does it cost?" is the natural question form.'},
+  {id:'F2',d:1,sent:'She can ___ five different languages fluently.',ans:'speak',opts:['speak','say','tell','talk'],hint:'"Speak a language" is the correct collocation.'},
+  {id:'F3',d:1,sent:'There were many guests at the party, so it was a bit ___ inside.',ans:'crowded',opts:['crowded','busy','full','packed'],hint:'"Crowded" describes too many people in a space.'},
+  {id:'F4',d:1,sent:'I don\'t ___ what he wrote. I\'m going to throw that letter away.',ans:'mind',opts:['mind','care','like','want'],hint:'"Don\'t mind" = not bothered by. Context: reacting to content of letter.'},
+  {id:'F5',d:1,sent:'An increasing ___ of families are experiencing financial difficulties.',ans:'number',opts:['number','amount','quantity','total'],hint:'"Number of families" — use "number" with countable nouns.'},
+  {id:'F6',d:2,sent:'The game had to be ___ indefinitely because of the damage to the stadium.',ans:'postponed',opts:['cancelled','postponed','delayed','stopped'],hint:'"Postponed" = delayed to a later unspecified date. "Cancelled" = not happening at all.'},
+  {id:'F7',d:2,sent:'He asked the politician a series of questions that she didn\'t have time to ___.',ans:'answer',opts:['answer','reply','respond','address'],hint:'"Answer questions" is the standard collocation.'},
+  {id:'F8',d:2,sent:'Please ___ your seat belt before the plane takes off.',ans:'fasten',opts:['fasten','tie','fix','attach'],hint:'"Fasten your seat belt" is a fixed safety phrase.'},
+  {id:'F9',d:2,sent:'The project was completed well ___ schedule, much to everyone\'s relief.',ans:'ahead of',opts:['ahead of','before','in front of','prior'],hint:'"Ahead of schedule" = finished earlier than planned.'},
+  {id:'F10',d:2,sent:'Staff are ___ to submit their timesheets by the end of each week.',ans:'required',opts:['required','told','expected','asked'],hint:'"Required to" = formal obligation in workplace policy language.'},
+  {id:'F11',d:2,sent:'The board ___ a unanimous decision to proceed with the acquisition.',ans:'reached',opts:['made','reached','took','came'],hint:'"Reach a decision" is the standard business collocation.'},
+  {id:'F12',d:2,sent:'The results of the study were ___ in a leading academic journal last month.',ans:'published',opts:['printed','published','released','announced'],hint:'"Published in a journal" = the standard academic expression.'},
+  {id:'F13',d:2,sent:'We need to ___ a solution to the drop in customer satisfaction scores.',ans:'find',opts:['find','solve','address','get'],hint:'"Find a solution" is the most natural collocation here.'},
+  {id:'F14',d:3,sent:'The new regulation ___ all companies to disclose their environmental impact annually.',ans:'requires',opts:['forces','requires','demands','makes'],hint:'"Requires" = formal neutral term in regulatory language; "forces" is too aggressive.'},
+  {id:'F15',d:3,sent:'The proposal was met with considerable ___ from senior members of the board.',ans:'resistance',opts:['objection','resistance','opposition','rejection'],hint:'"Met with resistance" is a fixed expression meaning it was opposed.'},
+  {id:'F16',d:3,sent:'The pilot scheme was successful and has since been ___ across the entire network.',ans:'rolled out',opts:['spread','rolled out','launched','extended'],hint:'"Rolled out" = implemented on a larger scale; common in business English.'},
+  {id:'F17',d:3,sent:'A thorough ___ of the quarterly data revealed several reporting inconsistencies.',ans:'analysis',opts:['review','analysis','study','assessment'],hint:'"Analysis of data" is the most precise and academic term here.'},
+  {id:'F18',d:3,sent:'The company\'s strong performance this year can be largely ___ to its R&D investment.',ans:'attributed',opts:['credited','attributed','linked','caused'],hint:'"Attributed to" = identified as the cause. Fixed academic phrase.'},
+  {id:'F19',d:3,sent:'Staff were reminded to ___ confidentiality when handling sensitive employee records.',ans:'maintain',opts:['keep','maintain','preserve','ensure'],hint:'"Maintain confidentiality" is standard HR and legal language.'},
+  {id:'F20',d:3,sent:'The contract will come ___ effect on the first day of the new financial year.',ans:'into',opts:['into','in','to','under'],hint:'"Come into effect" is a fixed legal and business phrase.'},
+],
+G:[
+  {id:'G1',d:1,text:'She left the office at five o\'clock.',hint:'Short and simple — accuracy matters more than speed here.'},
+  {id:'G2',d:1,text:'Please call me back when you get this message.',hint:'Everyday phrase — note the comma after "back".'},
+  {id:'G3',d:1,text:'The store opens at nine on weekdays.',hint:'Simple factual sentence — watch "weekdays" spelling.'},
+  {id:'G4',d:1,text:'Can you bring two copies of the report to the meeting?',hint:'Question form — starts with capital "Can", ends with "?".'},
+  {id:'G5',d:1,text:'Our offices will be closed on Monday due to the holiday.',hint:'Common notice-style sentence — watch capitalisation of "Monday".'},
+  {id:'G6',d:2,text:'Please submit your expense report by the end of the month.',hint:'"Expense report" and "end of the month" — common workplace phrase.'},
+  {id:'G7',d:2,text:'All employees are required to complete the online safety course before December.',hint:'"Required to complete" — formal structure. Watch "December" spelling.'},
+  {id:'G8',d:2,text:'The training session has been moved to the conference room on the third floor.',hint:'Location and floor number — every word must be exact.'},
+  {id:'G9',d:2,text:'Please ensure all relevant documents are attached before submitting the application.',hint:'"Relevant" and "submitting" — commonly misspelled under pressure.'},
+  {id:'G10',d:2,text:'The supplier confirmed that the delivery would be delayed by approximately two weeks.',hint:'"Approximately" — 5 syllables. Watch the spelling carefully.'},
+  {id:'G11',d:2,text:'Managers should provide written feedback within five working days of the review.',hint:'"Written feedback" and "working days" — standard HR language.'},
+  {id:'G12',d:2,text:'The annual performance review will take place during the last week of October.',hint:'"Annual performance review" — three-word compound noun. Watch "October".'},
+  {id:'G13',d:3,text:'All procurement requests exceeding five hundred pounds require written authorisation from a department head.',hint:'"Procurement" and "authorisation" — advanced vocabulary. British spelling: -isation.'},
+  {id:'G14',d:3,text:'Participants are reminded to register for the conference by the fifteenth of March.',hint:'"Fifteenth" — ordinal number, commonly misspelled. "Participants" — 4 syllables.'},
+  {id:'G15',d:3,text:'The organisation is committed to reducing its carbon footprint in line with its sustainability targets.',hint:'"Organisation" British spelling (-isation). "Sustainability" — 6 syllables.'},
+  {id:'G16',d:3,text:'The merger is subject to regulatory approval and is expected to be finalised by the second quarter.',hint:'"Regulatory", "finalised" — British spelling with -ised. Complex but common sentence structure.'},
+],
+H:[
+  {id:'H1',d:1,passage:'Thomas hates to clean. One day his mother asked him to help clean the house. Thomas did not want his mother to be angry with him. He decided to clean the kitchen. While he was washing the dishes, he dropped a plate. It fell on the floor and broke. He told his mother what had happened.',time:90,hint:'Key facts: Thomas hates cleaning, mother asked him, cleaned kitchen, dropped a plate, it broke, told his mother.'},
+  {id:'H2',d:2,passage:'Remote working has transformed modern workplaces significantly. Studies show that employees who work from home report higher job satisfaction and reduced stress levels. However, challenges remain around collaboration and maintaining boundaries between work and personal life. Companies that invest in digital communication tools tend to see better productivity outcomes.',time:90,hint:'Key ideas: (1) remote work is growing, (2) benefits: satisfaction and less stress, (3) challenges: collaboration and work-life boundary, (4) solution: digital tools.'},
+  {id:'H3',d:3,passage:'Effective data analysis requires both technical skills and critical thinking. Analysts must not only handle large datasets using tools like Python or SQL, but also communicate their findings to decision-makers through clear visualisations and concise reports. This combination of technical and communication skills is increasingly valued by employers across all sectors.',time:90,hint:'Key ideas: (1) needs technical skills and critical thinking, (2) tools: Python and SQL, (3) must communicate findings clearly, (4) valued across all sectors.'},
+],
+I:[
+  {id:'I1',d:3,passage:'Artificial intelligence is increasingly being used by employers to screen job applications, schedule interviews, and evaluate candidate responses. Supporters argue that AI reduces unconscious bias and speeds up the hiring process considerably. Critics, however, contend that algorithmic screening may introduce new forms of bias, particularly against candidates whose backgrounds differ from those represented in the training data. Furthermore, the absence of human empathy in AI-driven assessments may disadvantage those with non-traditional career paths. As AI becomes more prevalent in recruitment, calls for greater transparency and regulatory oversight continue to grow.',q:'Summarise the key arguments in the passage and give your own opinion on the use of AI in recruitment.',hint:'Structure: (1) Pro: faster, less bias. (2) Con: algorithmic bias, no empathy. (3) Your view with a clear reason. Use: "However, although, In my view, I believe that..."'},
+]}
+
+let cp='A',cv='practice',sess={c:0,t:0},chips={},tms={},typS={},recA={},curRec=null;
+
+function esc(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\n/g,'\\n').replace(/\r/g,'');}
+function dl(d){return d===1?'B1':d===2?'B2':'C1';}
+function dc(d){return d===1?'dlb1':d===2?'dlb2':'dlc1';}
+function dd(d){return d===1?'db1':d===2?'db2':'dc1';}
+
+// ── Speech synthesis
+function spk(text,rate,cb){
+  if(!('speechSynthesis' in window))return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='en-GB';u.rate=rate||0.87;
+  if(cb)u.onend=cb;
+  window.speechSynthesis.speak(u);
+}
+function spkBar(id,text){
+  const bar=document.getElementById('bar-'+id);
+  const st=document.getElementById('pst-'+id);
+  const btn=document.getElementById('pb-'+id);
+  if(!('speechSynthesis' in window)){if(st)st.textContent='Audio not supported — use Chrome or Safari';return;}
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='en-GB';u.rate=0.87;
+  const ms=text.split(' ').length*440;
+  u.onstart=()=>{
+    if(bar){bar.style.transition=`width ${ms}ms linear`;bar.style.width='100%';}
+    if(st)st.textContent='🔊 Playing...';
+    if(btn)btn.classList.add('playing');
+  };
+  u.onend=()=>{
+    if(bar){bar.style.transition='none';bar.style.width='0';}
+    if(st)st.textContent='✓ Done · tap ▶ replay';
+    if(btn)btn.classList.remove('playing');
+  };
+  window.speechSynthesis.speak(u);
+}
+function spkConv(id,conv){
+  const lines=conv.split('\\n').filter(Boolean);
+  const bar=document.getElementById('bar-'+id);
+  const st=document.getElementById('pst-'+id);
+  const btn=document.getElementById('pb-'+id);
+  if(!('speechSynthesis' in window)){if(st)st.textContent='Audio not supported — use Chrome or Safari';return;}
+  window.speechSynthesis.cancel();
+  if(btn)btn.classList.add('playing');
+  if(bar){bar.style.transition=`width ${lines.length*2600}ms linear`;bar.style.width='100%';}
+  const vs=window.speechSynthesis.getVoices().filter(v=>v.lang.startsWith('en'));
+  const vA=vs.find(v=>/female|samantha|karen|victoria|moira/i.test(v.name))||vs[0];
+  const vB=vs.find(v=>/male|daniel|alex|oliver|arthur/i.test(v.name))||vs[1]||vs[0];
+  function say(i){
+    if(i>=lines.length){
+      if(st)st.textContent='✓ Done · tap ▶ replay';
+      if(btn)btn.classList.remove('playing');
+      if(bar){bar.style.transition='none';bar.style.width='0';}
+      return;
+    }
+    const raw=lines[i];const isA=raw.startsWith('A:');
+    const u=new SpeechSynthesisUtterance(raw.replace(/^[AB]: /,''));
+    u.lang='en-GB';u.rate=0.87;u.pitch=isA?1.15:0.88;
+    if(isA&&vA)u.voice=vA;else if(!isA&&vB)u.voice=vB;
+    if(st)st.textContent=`🔊 ${isA?'Speaker A':'Speaker B'}...`;
+    u.onend=()=>setTimeout(()=>say(i+1),280);
+    window.speechSynthesis.speak(u);
+  }
+  if(vs.length===0)window.speechSynthesis.onvoiceschanged=()=>say(0);else say(0);
+}
+const PI='<svg width="13" height="13" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="white"/></svg>';
+const PA='<svg width="13" height="13" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+
+// ── Speech Recognition + Pronunciation Scoring
+function startPron(qid,target){
+  const mb=document.getElementById('mic-'+qid);
+  const ml=document.getElementById('ml-'+qid);
+  const sp=document.getElementById('sp-'+qid);
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    if(sp){sp.style.display='block';sp.innerHTML='<div style="padding:12px;font-size:13px;color:var(--amber)">⚠️ Speech recognition requires Chrome (Android/desktop) or Safari (iOS). Please switch browsers to use this feature.</div>';}
+    return;
+  }
+  if(recA[qid]){
+    if(curRec)curRec.stop();
+    recA[qid]=false;
+    if(mb){mb.classList.remove('rec');mb.classList.remove('done');}
+    if(ml)ml.textContent='Tap to record again';
+    return;
+  }
+  recA[qid]=true;
+  if(mb){mb.classList.add('rec');mb.classList.remove('done');}
+  if(ml)ml.textContent='🎙 Listening... speak now';
+  const r=new SR();
+  curRec=r;r.lang='en-GB';r.continuous=false;r.interimResults=false;r.maxAlternatives=3;
+  r.start();
+  r.onresult=e=>{
+    const spoken=e.results[0][0].transcript;
+    recA[qid]=false;
+    if(mb){mb.classList.remove('rec');mb.classList.add('done');}
+    if(ml)ml.textContent='✓ Recorded · tap to retry';
+    showPron(qid,target,spoken,sp);
+  };
+  r.onerror=e=>{
+    recA[qid]=false;
+    if(mb){mb.classList.remove('rec');mb.classList.remove('done');}
+    const msg=e.error==='not-allowed'?'Mic permission denied — allow access in browser settings':
+               e.error==='no-speech'?'No speech detected — tap mic and speak clearly':
+               'Error: '+e.error;
+    if(ml)ml.textContent=msg;
+  };
+  r.onend=()=>{if(recA[qid]){recA[qid]=false;if(mb)mb.classList.remove('rec');if(ml)ml.textContent='Tap to record again';}};
+}
+
+function nw(w){return w.toLowerCase().replace(/[^a-z0-9\']/g,'');}
+function edist(a,b){
+  const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
+  for(let j=0;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=a[i-1]===b[j-1]?d[i-1][j-1]:1+Math.min(d[i-1][j],d[i][j-1],d[i-1][j-1]);
+  return d[m][n];
+}
+function wsim(a,b){if(a===b)return 1;const l=a.length>b.length?a:b,s=a.length>b.length?b:a;return l.length===0?1:(l.length-edist(l,s))/l.length;}
+
+function showPron(qid,target,spoken,panel){
+  const tW=target.trim().split(/\s+/).map(nw).filter(Boolean);
+  const rawW=target.trim().split(/\s+/);
+  const sW=spoken.trim().split(/\s+/).map(nw).filter(Boolean);
+  const usedS=new Set();
+  const res=[];
+  let matched=0,partial=0;
+  tW.forEach((tw,ti)=>{
+    let fi=-1;
+    for(let si=0;si<sW.length;si++){if(!usedS.has(si)&&sW[si]===tw){fi=si;break;}}
+    if(fi>=0){usedS.add(fi);res.push({w:rawW[ti],s:'ok'});matched++;}
+    else{
+      let bsim=0,bsi=-1;
+      for(let si=0;si<sW.length;si++){if(!usedS.has(si)){const s2=wsim(tw,sW[si]);if(s2>bsim){bsim=s2;bsi=si;}}}
+      if(bsim>=0.6){usedS.add(bsi);res.push({w:rawW[ti],s:'apr'});partial++;}
+      else res.push({w:rawW[ti],s:'bad'});
+    }
+  });
+  const acc=Math.round(((matched+partial*0.5)/Math.max(tW.length,1))*100);
+  const flu=Math.min(100,Math.round((sW.length/Math.max(tW.length,1))*90+10));
+  const comp=Math.round((usedS.size/Math.max(tW.length,1))*100);
+  const ov=Math.round(acc*0.5+flu*0.25+comp*0.25);
+  const grade=ov>=85?'Excellent':ov>=70?'Good':ov>=55?'Fair':'Needs Work';
+  const gc=ov>=85?'var(--green)':ov>=70?'var(--blue)':ov>=55?'var(--amber)':'var(--red)';
+  const sc=ov>=70?'sg':ov>=50?'so':'sb';
+  // annotate passage
+  const pe=document.getElementById('pt-'+qid);
+  if(pe)pe.innerHTML=res.map(r=>`<span class="w ${r.s}">${r.w} </span>`).join('');
+  // word chips
+  const ok=res.filter(r=>r.s==='ok').map(r=>`<span class="wc wcok">✓ ${r.w}</span>`).join('');
+  const ap=res.filter(r=>r.s==='apr').map(r=>`<span class="wc wcerr">~ ${r.w}</span>`).join('');
+  const ms=res.filter(r=>r.s==='bad').map(r=>`<span class="wc wcms">${r.w}</span>`).join('');
+  if(panel){
+    panel.style.display='block';
+    panel.innerHTML=`
+      <div class="shdr">
+        <div><div class="sovr ${sc}">${ov}<span style="font-size:15px;font-weight:600">%</span></div><div class="slb">Pronunciation Score</div></div>
+        <div style="text-align:right"><div class="sgr" style="background:${gc}22;color:${gc}">${grade}</div><div style="font-size:11px;color:var(--text2);margin-top:4px">You said: "<em>${spoken}</em>"</div></div>
+      </div>
+      <div class="sbody">
+        ${srow('Accuracy','Words matched',acc)}
+        ${srow('Completeness','Words covered',comp)}
+        ${srow('Fluency','Speaking pace',flu)}
+      </div>
+      ${(ok||ap||ms)?`<div class="wana"><div class="watitle">Word analysis</div><div class="wchips">${ok}${ap}${ms}</div><div style="font-size:11px;color:var(--text2);margin-top:6px"><span style="color:var(--green)">✓ correct</span>&nbsp;<span style="color:var(--amber)">~ approximate</span>&nbsp;<span style="text-decoration:line-through;color:var(--text3)">missed</span></div></div>`:''}
+    `;
+  }
+}
+function srow(lbl,sub,v){
+  const c=v>=80?'var(--green)':v>=60?'var(--blue)':v>=45?'var(--amber)':'var(--red)';
+  return `<div class="srow"><div class="srlb">${lbl}<div style="font-size:10px;color:var(--text3)">${sub}</div></div><div class="srbar"><div class="srfill" style="width:${v}%;background:${c}"></div></div><div class="srnum" style="color:${c}">${v}%</div></div>`;
+}
+
+// ── Mic HTML helper
+function micHTML(qid,target,lbl){
+  return `<div class="micw">
+    <button class="micb" id="mic-${qid}" onclick="startPron('${qid}','${esc(target)}')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zm-1 3a1 1 0 012 0v8a1 1 0 01-2 0V4zM7 12a5 5 0 0010 0h2a7 7 0 01-6 6.92V21h-2v-2.08A7 7 0 015 12H7z"/></svg>
+    </button>
+    <div class="miclb" id="ml-${qid}">${lbl}</div>
+  </div>
+  <div class="spanel" id="sp-${qid}" style="display:none"></div>
+  <div class="sleg"><span style="color:var(--green)">✓ correct</span><span style="color:var(--amber)">~ approximate</span><span style="text-decoration:line-through;color:var(--text3)">missed</span></div>`;
+}
+
+// ── Render
+function render(){
+  if(cv==='tips'){rTips();return;}
+  if(cv==='score'){rScore();return;}
+  const qs=QB[cp]||[];const meta=PM[cp];
+  document.getElementById('tabRow').innerHTML=Object.keys(PM).map(p=>`<button class="tab ${p===cp?'on':''}" onclick="sprt('${p}')">${p}</button>`).join('');
+  const pct=Math.round((qs.length/meta.total)*100);
+  document.getElementById('pf').style.width=pct+'%';
+  document.getElementById('pt').textContent=`${qs.length} / ${meta.total} loaded`;
+  document.getElementById('si').innerHTML=`<div class="stitle">Part ${cp}: ${meta.name} <span class="stag">${meta.skill}</span></div><div class="sdesc">${meta.desc}</div>`;
+  let html='';
+  qs.forEach((q,i)=>{html+=rQ(cp,q,i);});
+  if(qs.length<meta.total){html+=`<div class="card" style="text-align:center;padding:18px">
+    <div style="font-size:22px;margin-bottom:6px">✨</div>
+    <div style="font-size:14px;font-weight:600">Generate more questions</div>
+    <div style="font-size:12px;color:var(--text2);margin:4px 0 12px">Full test has ${meta.total} items in Part ${cp}</div>
+    <button class="btn bp" style="width:100%" onclick="genMore('${cp}')">Generate with AI</button>
+  </div>`;}
+  document.getElementById('mc').innerHTML=html;
+}
+
+function qlb(part,i,q){
+  return `<div class="qlb">Q${i+1} · Part ${part} <span class="ddot ${dd(q.d)}"></span><span class="${dc(q.d)} dl">${dl(q.d)}</span></div>`;
+}
+
+function rQ(p,q,i){
+  if(p==='A')return rA(q,i);
+  if(p==='B')return rB(q,i);
+  if(p==='C')return rC(q,i);
+  if(p==='D')return rD(q,i);
+  if(p==='E')return rE(q,i);
+  if(p==='F')return rF(q,i);
+  if(p==='G')return rG(q,i);
+  if(p==='H')return rH(q,i);
+  if(p==='I')return rI(q,i);
+  return '';
+}
+
+function rA(q,i){
+  const wds=q.passage.split(/\s+/).map(w=>`<span class="w">${w}</span>`).join(' ');
+  return `<div class="card">${qlb('A',i,q)}
+    <div style="font-size:12px;color:var(--text2);margin-bottom:9px">Read this passage aloud exactly as written. 30 seconds.</div>
+    <div class="passage" id="pt-${q.id}">${wds}</div>
+    ${micHTML(q.id,q.passage,'Tap to record · read the passage aloud')}
+  </div>`;
+}
+
+function rB(q,i){
+  const wds=q.text.split(/\s+/).map(w=>`<span class="w">${w}</span>`).join(' ');
+  return `<div class="card">${qlb('B',i,q)}
+    <div style="font-size:12px;color:var(--text2);margin-bottom:9px">🎧 Listen to the sentence, then repeat it exactly. 15 seconds.</div>
+    <div class="player">
+      <button class="pbtn" id="pb-${q.id}" onclick="spkBar('${q.id}','${esc(q.text)}')">${PI}</button>
+      <div class="pinfo">
+        <div class="plbl">Tap ▶ to hear the sentence</div>
+        <div class="pst" id="pst-${q.id}">Ready · 15 seconds to repeat after listening</div>
+        <div class="pbarw"><div class="pbar2" id="bar-${q.id}"></div></div>
+      </div>
+    </div>
+    <div id="pt-${q.id}" class="passage hidden" style="margin-bottom:10px">${wds}</div>
+    <button class="trbt" onclick="toggleSent('${q.id}')">👁 Show / hide sentence text</button>
+    ${micHTML(q.id,q.text,'Tap mic to record your repeat · get pronunciation score')}
+    <div class="tip"><strong>Tip:</strong> ${q.hint}</div>
+  </div>`;
+}
+
+function rC(q,i){
+  const shuf=[...q.phrases].sort(()=>Math.random()-.5);
+  const wds=q.answer.split(/\s+/).map(w=>`<span class="w">${w}</span>`).join(' ');
+  return `<div class="card">${qlb('C',i,q)}
+    <div style="font-size:12px;color:var(--text2);margin-bottom:9px">Arrange the three phrases into a correct sentence, then say it aloud.</div>
+    <div class="srcw">${shuf.map((p,j)=>`<span class="ch chsrc" id="cs-${q.id}-${j}" onclick="pickC('${q.id}',${j},'${esc(p)}')">${p}</span>`).join('')}</div>
+    <div class="cara" id="ca-${q.id}"></div>
+    <div id="fb-${q.id}" class="fb"></div>
+    <div class="btns">
+      <button class="btn bs" onclick="resetC('${q.id}','${esc(JSON.stringify(shuf))}')">Reset</button>
+      <button class="btn bp" onclick="checkC('${q.id}','${esc(q.answer)}')">Check</button>
+    </div>
+    <div style="margin-top:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Sentence to say aloud:</div>
+      <div class="passage" id="pt-${q.id}" style="font-size:13px;margin-bottom:0">${wds}</div>
+    </div>
+    ${micHTML(q.id,q.answer,'Say the complete sentence · get pronunciation score')}
+  </div>`;
+}
+
+function rD(q,i){
+  return `<div class="card">${qlb('D',i,q)}
+    <div style="font-size:12px;color:var(--text2);margin-bottom:9px">🎧 Listen to the conversation. Answer with a word or short phrase.</div>
+    <div class="player">
+      <button class="pbtn" id="pb-${q.id}" onclick="spkConv('${q.id}','${esc(q.conv)}')">${PI}</button>
+      <div class="pinfo">
+        <div class="plbl">Play conversation</div>
+        <div class="pst" id="pst-${q.id}">Tap ▶ to listen · transcript hidden</div>
+        <div class="pbarw"><div class="pbar2" id="bar-${q.id}"></div></div>
+      </div>
+    </div>
+    <div style="font-size:14px;font-weight:600;margin:11px 0 8px"><strong>Q:</strong> ${q.q}</div>
+    <input class="tinp" id="inp-${q.id}" placeholder="Your answer..." autocomplete="off">
+    <div id="fb-${q.id}" class="fb"></div>
+    <div class="btns">
+      <button class="btn bs" onclick="clr('${q.id}')">Clear</button>
+      <button class="btn bp" onclick="chkD('${q.id}','${esc(q.ans)}','${esc(q.hint)}')">Submit</button>
+    </div>
+    <button class="trbt" onclick="this.nextElementSibling.classList.toggle('show')">📄 Show / hide transcript</button>
+    <div class="trbox">${q.conv}</div>
+  </div>`;
+}
+
+function rE(q,i){
+  return `<div class="card">${qlb('E',i,q)}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+      <span style="font-size:12px;color:var(--text2)">Type as much as you can in 60 seconds</span>
+      <span class="tmr" id="tmr-${q.id}">1:00</span>
+    </div>
+    <div class="passage" id="ep-${q.id}" style="max-height:130px;overflow-y:auto;font-size:13px">${q.passage}</div>
+    <textarea class="tinp" id="inp-${q.id}" placeholder="Start typing here — timer starts on first keystroke" rows="4" oninput="startTyp('${q.id}')"></textarea>
+    <div id="fb-${q.id}" class="fb"></div>
+    <div class="btns">
+      <button class="btn bs" onclick="rstTyp('${q.id}')">Reset</button>
+      <button class="btn bp" onclick="evalTyp('${q.id}','${esc(q.passage)}')">Evaluate</button>
+    </div>
+    <div class="ibox"><strong>Target:</strong> 12+ WPM · 90%+ accuracy · not scored but visible to administrator</div>
+  </div>`;
+}
+
+function rF(q,i){
+  const disp=q.sent.replace('___','<span style="border-bottom:2px solid var(--blue);padding:0 3px;color:var(--blue);font-weight:700">___</span>');
+  return `<div class="card">${qlb('F',i,q)}
+    <div class="passage" style="margin-bottom:10px;font-size:15px;line-height:1.75">${disp}</div>
+    <div class="opts">
+      ${q.opts.map((o,j)=>`<button class="opt" id="op-${q.id}-${j}" onclick="chkF('${q.id}',${j},'${esc(o)}','${esc(q.ans)}','${esc(q.hint)}')">
+        <span class="olb">${String.fromCharCode(65+j)}</span>${o}
+      </button>`).join('')}
+    </div>
+    <div id="fb-${q.id}" class="fb"></div>
+  </div>`;
+}
+
+function rG(q,i){
+  return `<div class="card">${qlb('G',i,q)}
+    <div style="font-size:12px;color:var(--text2);margin-bottom:9px">🎧 Listen and type exactly what you hear. Spelling, punctuation and capitalisation all count.</div>
+    <div class="player">
+      <button class="pbtn" id="pb-${q.id}" onclick="spkBar('${q.id}','${esc(q.text)}')">${PI}</button>
+      <div class="pinfo">
+        <div class="plbl">Tap ▶ to hear the sentence</div>
+        <div class="pst" id="pst-${q.id}">Ready · 30 seconds to type</div>
+        <div class="pbarw"><div class="pbar2" id="bar-${q.id}"></div></div>
+      </div>
+    </div>
+    <input class="tinp" id="inp-${q.id}" placeholder="Type exactly what you heard..." autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off">
+    <div id="fb-${q.id}" class="fb"></div>
+    <div class="btns">
+      <button class="btn bs" onclick="spkBar('${q.id}','${esc(q.text)}')">▶ Replay</button>
+      <button class="btn bp" onclick="chkG('${q.id}','${esc(q.text)}','${esc(q.hint)}')">Submit</button>
+    </div>
+  </div>`;
+}
+
+function rH(q,i){
+  return `<div class="card">${qlb('H',i,q)}
+    <div id="hr-${q.id}">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:9px">Read the passage carefully. Then tap the button — it will disappear. Reconstruct it in your own words.</div>
+      <div class="passage">${q.passage}</div>
+      <button class="btn bp" style="width:100%;margin-top:10px" onclick="hideH('${q.id}',${q.time})">I've read it — start writing</button>
+    </div>
+    <div id="hw-${q.id}" class="hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+        <span style="font-size:12px;color:var(--text2)">Write from memory — use your own words</span>
+        <span class="tmr" id="tmr-${q.id}">${Math.floor(q.time/60)}:${String(q.time%60).padStart(2,'0')}</span>
+      </div>
+      <textarea class="tinp" id="inp-${q.id}" placeholder="Reconstruct the passage..." rows="5"></textarea>
+      <div class="btns" style="margin-top:9px">
+        <button class="btn bs" onclick="shwOrig('${q.id}','${esc(q.passage)}')">Show original</button>
+        <button class="btn bp" onclick="selfA('${q.id}','${esc(q.hint)}')">Self-assess</button>
+      </div>
+    </div>
+    <div id="fb-${q.id}" class="fb"></div>
+  </div>`;
+}
+
+function rI(q,i){
+  return `<div class="card">${qlb('I',i,q)}
+    <div class="passage" style="margin-bottom:10px;max-height:180px;overflow-y:auto;font-size:13.5px">${q.passage}</div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:9px">📝 ${q.q}</div>
+    <textarea class="tinp" id="inp-${q.id}" placeholder="Write your summary and opinion (~120-150 words)..." rows="7"></textarea>
+    <div id="fb-${q.id}" class="fb"></div>
+    <div class="btns" style="margin-top:9px">
+      <button class="btn bs" onclick="wc('${q.id}')">Word count</button>
+      <button class="btn bp" onclick="selfOp('${q.id}','${esc(q.hint)}')">Self-assess</button>
+    </div>
+    <div class="ibox" style="margin-top:9px"><strong>Structure:</strong> ${q.hint}</div>
+  </div>`;
+}
+
+// ── Tips
+function rTips(){
+  document.getElementById('tabRow').innerHTML='';
+  document.getElementById('pf').style.width='0';
+  document.getElementById('pt').textContent='';
+  document.getElementById('si').innerHTML='<div class="stitle">Exam Tips</div><div class="sdesc">Strategies for every section of the Pearson VEPT</div>';
+  const tips=[
+    {p:'A · Read Aloud',icon:'📖',items:['Consider the overall meaning before reading aloud','Pause briefly at commas and longer at full stops','Stress content words: main nouns, verbs, adjectives','Start within 10 seconds or the test moves on','Use the pronunciation score to identify weak words']},
+    {p:'B · Repeat',icon:'🔁',items:['Listen to the complete sentence before repeating','Mimic the rhythm, stress and intonation of the recording','Do not self-correct — speak once, confidently','Use the mic score to check accuracy after each attempt','Practice B15-B16 level sentences daily — they are close to C1']},
+    {p:'C · Sentence Builds',icon:'🔀',items:['Identify subject, verb and object first','Common patterns: Subject + Verb + Object + Adverbial','Start speaking within 8 seconds','Listen for each phrase carefully — they are presented in random order']},
+    {p:'D · Conversations',icon:'💬',items:['Listen for who, what, when, where answers','Short answers are fine — one word or a phrase is enough','Listen to the question carefully — it tells you what to focus on','Topics: meetings, schedules, reports, office situations']},
+    {p:'E · Typing',icon:'⌨️',items:['Target: 12+ WPM and 90%+ accuracy','Copy punctuation exactly — do not rely on autocorrect','Accuracy matters more than speed','Warm up by typing freely for 2 minutes before the test']},
+    {p:'F · Sentence Completion',icon:'✏️',items:['Read the full sentence for context before choosing','Look for collocations: "reach a decision", "fasten a belt"','Eliminate clearly wrong options first','Check grammar: article, tense, singular or plural form']},
+    {p:'G · Dictation',icon:'🎧',items:['Type as you hear — do not wait till the end','Capitalise the first word and add a full stop at the end','If you miss a word, leave a space and continue','Common errors: their/there, its/it\'s, affect/effect']},
+    {p:'H · Passage Reconstruction',icon:'📝',items:['Read for main ideas, not every word','Identify: topic, key facts, any contrast, conclusion','Use your own vocabulary — do not try to memorise verbatim','Key ideas matter more than exact wording']},
+    {p:'I · Summary & Opinion',icon:'💡',items:['Write a 3-4 sentence summary first, then your view','Use connectors: Furthermore, However, In contrast','Show vocabulary range — avoid "good/bad", use "beneficial/problematic"','State your opinion clearly: "In my view..." or "I believe that..."']},
+  ];
+  document.getElementById('mc').innerHTML=tips.map(t=>`
+    <div class="card">
+      <div style="font-size:14px;font-weight:700;margin-bottom:9px">${t.icon} ${t.p}</div>
+      ${t.items.map(it=>`<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;align-items:flex-start"><span style="color:var(--blue);margin-top:1px;flex-shrink:0">›</span>${it}</div>`).join('')}
+    </div>
+  `).join('');
+}
+
+// ── Score page
+function rScore(){
+  document.getElementById('tabRow').innerHTML='';
+  document.getElementById('pf').style.width='0';
+  document.getElementById('pt').textContent='';
+  document.getElementById('si').innerHTML='';
+  const pct=sess.t>0?Math.round((sess.c/sess.t)*100):0;
+  document.getElementById('mc').innerHTML=`
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="shero"><div class="sheron">${pct}<span style="font-size:22px">%</span></div><div class="shers">${sess.c} / ${sess.t} questions correct</div></div>
+      <div class="cgrid">
+        ${[['Pre-A1','< 30'],['A2','30-42'],['B1','43-58'],['B2','59-75'],['C1','76-84'],['C2','85-90']].map(([l,r])=>`<div class="ci"><div class="clv">${l}</div><div class="crng">${r} pts</div></div>`).join('')}
+      </div>
+    </div>
+    <div style="margin:8px 11px;padding:11px 13px;background:var(--blue-lt);border:1px solid var(--blue-md);border-radius:var(--r);font-size:13px;color:#1e40af">
+      <strong>Manchester target:</strong> Data Analytics requires B2 or above — typically 59+ on the GSE scale. Focus most on Speaking (A-C), Listening (D, G), and Writing (H, I).
+    </div>
+    <div style="padding:0 11px 16px;margin-top:4px"><button class="btn bs" style="width:100%" onclick="sess={c:0,t:0};rScore()">Reset session</button></div>
+  `;
+}
+
+// ── Actions
+function fb(id,type,msg){
+  const el=document.getElementById('fb-'+id);
+  if(!el)return;
+  if(!msg){el.className='fb';el.innerHTML='';return;}
+  el.className=`fb ${type} show`;el.innerHTML=msg;
+}
+function clr(id){const el=document.getElementById('inp-'+id);if(el){el.value='';el.className='tinp';}fb(id,'','');}
+function chkD(id,ans,hint){
+  const v=document.getElementById('inp-'+id)?.value.trim().toLowerCase()||'';
+  const acc=ans.split('/').map(a=>a.trim().toLowerCase());
+  const ok=acc.some(a=>v.includes(a)||(a.includes(v)&&v.length>=3));
+  if(ok){document.getElementById('inp-'+id).className='tinp ok';fb(id,'ok',`✓ Correct! Accepted: <b>${ans.replace(/\//g,' / ')}</b>`);sess.c++;}
+  else{document.getElementById('inp-'+id).className='tinp err';fb(id,'err',`✗ Expected: <b>${ans.replace(/\//g,' / ')}</b><br><span style="font-size:12px">${hint}</span>`);}
+  sess.t++;
+}
+function chkF(id,j,sel,ans,hint){
+  document.querySelectorAll(`[id^="op-${id}-"]`).forEach(o=>o.onclick=null);
+  const ok=sel.toLowerCase()===ans.toLowerCase();
+  document.getElementById(`op-${id}-${j}`).className=`opt ${ok?'ok2':'bad2'}`;
+  if(!ok)document.querySelectorAll(`[id^="op-${id}-"]`).forEach(o=>{if(o.querySelector('span:last-child')?.textContent.trim().toLowerCase()===ans.toLowerCase())o.className='opt ok2';});
+  fb(id,ok?'ok':'err',ok?`✓ Correct! <b>${ans}</b> — ${hint}`:`✗ Answer: <b>${ans}</b><br><span style="font-size:12px">${hint}</span>`);
+  if(ok)sess.c++;sess.t++;
+}
+function chkG(id,target,hint){
+  const v=document.getElementById('inp-'+id)?.value.trim()||'';
+  const n=s=>s.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim();
+  const tW=n(target).split(' ');const sW=n(v).split(' ');
+  const ov=sW.filter(w=>tW.includes(w)).length/tW.length;
+  if(ov>=0.85){document.getElementById('inp-'+id).className='tinp ok';fb(id,'ok',`✓ Excellent! Target: <b>${target}</b>`);sess.c++;}
+  else{document.getElementById('inp-'+id).className='tinp err';fb(id,'err',`✗ Target: <b>${target}</b><br><span style="font-size:12px">${hint}</span>`);}
+  sess.t++;
+}
+function pickC(qid,j,text){
+  const src=document.getElementById(`cs-${qid}-${j}`);
+  if(src?.classList.contains('used'))return;
+  src?.classList.add('used');
+  if(!chips[qid])chips[qid]=[];
+  chips[qid].push({j,text});
+  const area=document.getElementById('ca-'+qid);
+  const c=document.createElement('span');
+  c.className='ch cha';c.textContent=text;
+  c.onclick=()=>{c.remove();src?.classList.remove('used');chips[qid]=chips[qid].filter(x=>x.j!==j);};
+  area?.appendChild(c);
+}
+function resetC(qid,sj){
+  const s=JSON.parse(sj.replace(/&quot;/g,'"'));
+  document.getElementById('ca-'+qid).innerHTML='';
+  chips[qid]=[];
+  s.forEach((_,j)=>document.getElementById(`cs-${qid}-${j}`)?.classList.remove('used'));
+  fb(qid,'','');
+}
+function checkC(qid,ans){
+  const built=Array.from(document.getElementById('ca-'+qid)?.querySelectorAll('.ch')||[]).map(c=>c.textContent).join(' ');
+  if(!built.trim()){fb(qid,'err','Please arrange the phrases first.');return;}
+  const n=s=>s.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim();
+  if(n(built)===n(ans)){fb(qid,'ok',`✓ Correct! <b>"${ans}"</b>`);sess.c++;}
+  else fb(qid,'err',`✗ Correct sentence: <b>"${ans}"</b>`);
+  sess.t++;
+}
+function startTyp(id){
+  if(typS[id])return;typS[id]=true;
+  let s=60;const el=document.getElementById('tmr-'+id);
+  tms[id]=setInterval(()=>{s--;if(el){el.textContent=`0:${String(s).padStart(2,'0')}`;if(s<=10)el.className='tmr urg';}if(s<=0){clearInterval(tms[id]);evalTyp(id,document.getElementById('ep-'+id)?.textContent||'');}},1000);
+}
+function rstTyp(id){
+  clearInterval(tms[id]);typS[id]=false;
+  const i=document.getElementById('inp-'+id);if(i)i.value='';
+  const el=document.getElementById('tmr-'+id);if(el){el.textContent='1:00';el.className='tmr';}
+  fb(id,'','');
+}
+function evalTyp(id,passage){
+  clearInterval(tms[id]);
+  const typed=document.getElementById('inp-'+id)?.value.trim()||'';
+  if(!typed){fb(id,'err','Please type something first.');return;}
+  const tW=passage.trim().split(/\s+/);const sW=typed.trim().split(/\s+/);
+  let cor=0;sW.forEach((w,i)=>{if(tW[i]&&w.toLowerCase()===tW[i].toLowerCase())cor++;});
+  const acc=Math.round((cor/sW.length)*100);const wpm=sW.length;
+  const ok=wpm>=12&&acc>=90;
+  fb(id,ok?'ok':'err',`Words: <b>${wpm}</b> (~${wpm} WPM) · Accuracy: <b>${acc}%</b><br>${ok?'✓ Meets requirements (12+ WPM, 90%+ accuracy)':'✗ Aim for 12+ WPM and 90%+ accuracy'}`);
+}
+function hideH(id,t){
+  document.getElementById('hr-'+id)?.classList.add('hidden');
+  document.getElementById('hw-'+id)?.classList.remove('hidden');
+  let s=t;const el=document.getElementById('tmr-'+id);
+  tms[id]=setInterval(()=>{s--;const m=Math.floor(s/60);if(el){el.textContent=`${m}:${String(s%60).padStart(2,'0')}`;if(s<=15)el.className='tmr urg';}if(s<=0)clearInterval(tms[id]);},1000);
+}
+function shwOrig(id,p){fb(id,'info',`<strong>Original:</strong><br>${p}`);}
+function selfA(id,h){fb(id,'ok',`<strong>Self-check:</strong> ${h}`);}
+function selfOp(id,h){const w=document.getElementById('inp-'+id)?.value.trim().split(/\s+/).filter(Boolean).length||0;fb(id,'info',`<strong>Word count: ${w}</strong> (target 120-150)<br><br>${h}`);}
+function wc(id){const w=document.getElementById('inp-'+id)?.value.trim().split(/\s+/).filter(Boolean).length||0;fb(id,'info',`Word count: <b>${w}</b> (target: 120-150)`);}
+
+// ── AI generation
+async function genMore(part){
+  const meta=PM[part];const exist=QB[part]||[];const need=Math.min(meta.total-exist.length,6);
+  if(need<=0)return;
+  const gc=document.createElement('div');gc.className='card';
+  gc.innerHTML='<div style="text-align:center;padding:16px"><div style="font-size:24px;margin-bottom:6px">⏳</div><div style="font-size:13px;color:var(--text2)">Generating questions...</div></div>';
+  document.getElementById('mc').appendChild(gc);gc.scrollIntoView({behavior:'smooth'});
+  const prompts={
+    A:`Generate ${need} Read Aloud passages for Pearson VEPT Part A. 3-4 sentences each on workplace or everyday topics. Mix d:2 and d:3. Return ONLY JSON array: [{"id":"AX","d":2,"passage":"..."}]`,
+    B:`Generate ${need} Repeat sentences for VEPT Part B. Natural workplace sentences 10-18 words. Mix d:1,2,3. Return ONLY JSON: [{"id":"BX","d":2,"text":"...","hint":"stress or pronunciation tip"}]`,
+    C:`Generate ${need} Sentence Builds for VEPT Part C. Each has 3 short phrases that form one sentence when arranged. Mix d:1,2,3. Return ONLY JSON: [{"id":"CX","d":2,"phrases":["p1","p2","p3"],"answer":"full sentence"}]`,
+    D:`Generate ${need} Conversations for VEPT Part D. Each has a 4-line A/B dialogue plus a comprehension question with a short answer. Mix d:1,2,3. Return ONLY JSON: [{"id":"DX","d":2,"conv":"A: ...\\nB: ...\\nA: ...\\nB: ...","q":"question?","ans":"answer1/answer2","hint":"tip"}]`,
+    F:`Generate ${need} Sentence Completion questions for VEPT Part F. Each sentence has one blank (___) and 4 options. Mix d:2,3. Return ONLY JSON: [{"id":"FX","d":2,"sent":"sentence with ___","ans":"word","opts":["A","B","C","D"],"hint":"brief explanation"}]`,
+    G:`Generate ${need} Dictation sentences for VEPT Part G. Complete workplace sentences 12-22 words. Mix d:1,2,3. Return ONLY JSON: [{"id":"GX","d":2,"text":"...","hint":"spelling note"}]`,
+    H:`Generate ${need} Passage Reconstruction passages for VEPT Part H. 4-5 sentences on a workplace or social topic. d:2 or d:3. Return ONLY JSON: [{"id":"HX","d":2,"passage":"...","time":90,"hint":"key ideas"}]`,
+  };
+  const prompt=prompts[part]||`Generate ${need} practice items for VEPT Part ${part}. Return ONLY a valid JSON array.`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,system:'You are a test content creator for the Pearson Versant English Placement Test. Return ONLY a valid JSON array, no markdown, no explanation.',messages:[{role:'user',content:prompt}]})});
+    const data=await r.json();
+    const txt=data.content?.find(b=>b.type==='text')?.text||'[]';
+    const nqs=JSON.parse(txt.replace(/```json|```/g,'').trim());
+    nqs.forEach((q,i)=>{if(!q.id)q.id=part+(exist.length+i+1)+'g';});
+    QB[part]=[...exist,...nqs];gc.remove();render();
+  }catch(e){gc.innerHTML=`<div style="padding:16px;text-align:center"><div style="font-size:13px;color:var(--red)">Failed to generate. Please try again.</div><button class="btn bs" style="margin-top:10px;width:100%" onclick="genMore('${part}')">Retry</button></div>`;}
+}
+
+// ── Nav
+function sprt(p){cp=p;cv='practice';document.querySelectorAll('.nb').forEach((b,i)=>b.classList.toggle('on',i===0));render();window.scrollTo({top:0,behavior:'smooth'});}
+function sv(v,el){cv=v;if(el){document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));el.classList.add('on');}render();window.scrollTo({top:0,behavior:'smooth'});}
+
+function toggleSent(id){
+  const el=document.getElementById('pt-'+id);
+  if(el) el.classList.toggle('hidden');
+}
+
+render();
+</script>
+</body>
+</html>
